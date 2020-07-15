@@ -1,5 +1,11 @@
-import React from 'react';
-import { TouchableWithoutFeedback } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  TouchableWithoutFeedback,
+  Animated,
+  PanResponder,
+  Dimensions,
+  Alert,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 import {
@@ -12,6 +18,8 @@ import {
   LikeContainer,
   Likes,
 } from './styles';
+
+const { width } = Dimensions.get('window');
 
 interface IUser {
   id: number;
@@ -28,24 +36,101 @@ interface IUserProps {
   onPress(): void;
 }
 
-const User: React.FC<IUserProps> = ({ user }) => {
-  return (
-    <TouchableWithoutFeedback>
-      <Container>
-        <Thumbnail source={{ uri: user?.thumbnail }} />
+const User: React.FC<IUserProps> = ({ user, onPress }) => {
+  const offset = useRef(new Animated.ValueXY({ x: 0, y: 50 })).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
-        <InfoContainer>
-          <BioContainer>
-            <Name />
-            <Description />
-          </BioContainer>
-          <LikeContainer>
-            <Icon name="heart" size={12} color="#FFF" />
-            <Likes />
-          </LikeContainer>
-        </InfoContainer>
-      </Container>
-    </TouchableWithoutFeedback>
+  const panResponder = useRef(
+    PanResponder.create({
+      onPanResponderTerminationRequest: () => false,
+      onMoveShouldSetPanResponder: () => true,
+
+      onPanResponderMove: Animated.event(
+        [
+          null,
+          {
+            dx: offset.x,
+          },
+        ],
+        {
+          useNativeDriver: false,
+        },
+      ),
+
+      onPanResponderRelease: () => {
+        if (Object.values(offset)[2]._value < -width * 0.75)
+          Alert.alert('Deleted!!');
+
+        Animated.spring(offset.x, {
+          toValue: 0,
+          bounciness: 20,
+          useNativeDriver: false,
+        }).start();
+      },
+
+      onPanResponderTerminate: () => {
+        Animated.spring(offset.x, {
+          toValue: 0,
+          bounciness: 20,
+          useNativeDriver: false,
+        }).start();
+      },
+    }),
+  ).current;
+
+  useEffect(() => {
+    function animate() {
+      Animated.parallel([
+        Animated.spring(offset.y, {
+          toValue: 0,
+          speed: 5,
+          bounciness: 20,
+          useNativeDriver: false,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+
+    animate();
+  }, [offset.y, opacity]);
+
+  return (
+    <Animated.View
+      {...panResponder.panHandlers}
+      style={{
+        transform: [
+          ...offset.getTranslateTransform(),
+          {
+            rotateZ: offset.x.interpolate({
+              inputRange: [-width, width],
+              outputRange: ['-50deg', '50deg'],
+            }),
+          },
+        ],
+        opacity,
+      }}
+    >
+      <TouchableWithoutFeedback onPress={onPress}>
+        <Container>
+          <Thumbnail source={{ uri: user?.thumbnail }} />
+
+          <InfoContainer style={{ backgroundColor: user?.color }}>
+            <BioContainer>
+              <Name>{user?.name.toUpperCase()}</Name>
+              <Description>{user?.description}</Description>
+            </BioContainer>
+            <LikeContainer>
+              <Icon name="heart" size={12} color="#FFF" />
+              <Likes>{user?.likes}</Likes>
+            </LikeContainer>
+          </InfoContainer>
+        </Container>
+      </TouchableWithoutFeedback>
+    </Animated.View>
   );
 };
 

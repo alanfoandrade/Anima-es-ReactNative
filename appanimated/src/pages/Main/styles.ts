@@ -5,15 +5,14 @@ export const Container = styled.View`
   flex: 1;
 `;
 export const Header = styled.View`
-  height: 200px;
+  flex: 1;
   background: #2e93e5;
   padding: ${Platform.OS === 'ios' ? 40 : 20}px 15px 0;
 `;
-export const HeaderImage = styled.Image``;
 
 export const HeaderText = styled.Text`
   font-size: 24px;
-  font-weight: 900;
+  font-weight: bold;
   color: #fff;
   background: transparent;
   position: absolute;

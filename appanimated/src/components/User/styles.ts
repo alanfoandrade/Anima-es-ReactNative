@@ -1,10 +1,9 @@
 import styled from 'styled-components/native';
 
 export const Container = styled.View`
-  margin-top: 10px;
+  margin: 10px 15px 0;
   border-radius: 10px;
   flex-direction: column;
-  margin: 0 15px;
 `;
 
 export const Thumbnail = styled.Image`
@@ -25,7 +24,7 @@ export const BioContainer = styled.View`
 
 export const Name = styled.Text`
   color: #fff;
-  font-weight: 900;
+  font-weight: bold;
   font-size: 10px;
 `;
 
